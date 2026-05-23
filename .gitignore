@@ -1,0 +1,29 @@
+# Build artefacts
+build/
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.d
+
+# Toolchain
+.cproject
+.project
+.settings/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# FreeRTOS (vendored — ignored if placed under rtos/freertos/FreeRTOS/)
+# Uncomment if you vendor the kernel:
+# rtos/freertos/FreeRTOS/
