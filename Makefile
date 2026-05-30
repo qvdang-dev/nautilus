@@ -33,9 +33,9 @@ ROOT        := $(CURDIR)
 COMMON_INC  := $(ROOT)/common/inc
 COMMON_SRC  := $(ROOT)/common/src
 MCU_ROOT    := $(ROOT)/common/mcu
-MCU_LD      := $(MCU_ROOT)/ld
 MCU_STARTUP := $(MCU_ROOT)/$(MCU)/startup
 MCU_SYSTEM  := $(MCU_ROOT)/$(MCU)/system
+MCU_LD      := $(MCU_ROOT)/$(MCU)/ld
 BOARD_SRC   := $(ROOT)/common/boards
 RTOS_INC    := $(ROOT)/rtos/freertos
 RTOS_SRC    := $(ROOT)/rtos/freertos/src
@@ -51,7 +51,7 @@ C_SRCS := \
   $(COMMON_SRC)/led.c \
   $(COMMON_SRC)/uart.c \
   $(COMMON_SRC)/utils.c \
-  $(MCU_ROOT)/mcu_$(MCU).c \
+  $(wildcard $(MCU_ROOT)/$(MCU)/*.c) \
   $(BOARD_SRC)/board_$(BOARD).c \
   $(RTOS_SRC)/tasks.c \
   $(MCU_SYSTEM)/system_stm32f4xx.c \
@@ -92,6 +92,7 @@ CFLAGS := \
   -fno-common \
   -I$(COMMON_INC) \
   -I$(MCU_ROOT) \
+  -I$(MCU_ROOT)/$(MCU) \
   -I$(MCU_SYSTEM) \
   -I$(MCU_STARTUP) \
   -I$(BOARD_SRC) \
@@ -107,7 +108,7 @@ ASFLAGS := $(CPU_FLAGS) -c -g -x assembler-with-cpp
 
 LDFLAGS := \
   $(CPU_FLAGS) \
-  -T $(MCU_LD)/stm32f407xx.ld \
+  -T $(MCU_LD)/$(MCU).ld \
   -nostartfiles \
   -Wl,--gc-sections \
   -Wl,-Map=$(BUILD_DIR)/firmware.map \

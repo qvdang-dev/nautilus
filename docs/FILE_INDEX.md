@@ -19,14 +19,19 @@ A complete inventory of every file and directory in the `nautilus` repository.
 ### [`common/mcu/`](common/mcu/) — MCU abstraction layer
 
 All MCU-specific files are grouped under a per-MCU subdirectory
-(`common/mcu/<mcu>/`).  The portable `mcu_t` vtable header and
-implementation live at the `common/mcu/` level.
+(`common/mcu/<mcu>/`).  The portable `mcu_t` vtable header lives at
+`common/mcu/mcu.h`.
 
 | Path | Description |
 |---|---|
 | [`common/mcu.h`](common/mcu.h) | `mcu_t` vtable definition: `gpio_mode/write/read/toggle`, `uart_init/putc/puts/getc`, `delay_ms`, `get_sysclk`; `mcu_get()` accessor |
-| [`common/mcu/mcu_stm32f4.c`](common/mcu/mcu_stm32f4.c) | STM32F4xx implementation — register-level GPIO (RCC/AHB1, MODER, BSRR, IDR) and USART2 driver |
-| [`common/mcu/ld/stm32f407xx.ld`](common/mcu/ld/stm32f407xx.ld) | GNU LD linker script for STM32F407VG (Flash 1 MB, SRAM 128 KB) |
+| [`common/mcu/stm32f4/mcu_stm32f4.c`](common/mcu/stm32f4/mcu_stm32f4.c) | STM32F4 vtable — ties GPIO, UART, system implementations together |
+| [`common/mcu/stm32f4/mcu_stm32f4_impl.h`](common/mcu/stm32f4/mcu_stm32f4_impl.h) | STM32F4 implementation function declarations |
+| [`common/mcu/stm32f4/mcu_stm32f4_regs.h`](common/mcu/stm32f4/mcu_stm32f4_regs.h) | STM32F4 register definitions (internal header) |
+| [`common/mcu/stm32f4/mcu_stm32f4_gpio.c`](common/mcu/stm32f4/mcu_stm32f4_gpio.c) | STM32F4 GPIO implementation |
+| [`common/mcu/stm32f4/mcu_stm32f4_uart.c`](common/mcu/stm32f4/mcu_stm32f4_uart.c) | STM32F4 UART implementation |
+| [`common/mcu/stm32f4/mcu_stm32f4_system.c`](common/mcu/stm32f4/mcu_stm32f4_system.c) | STM32F4 system functions (delay, clock) |
+| [`common/mcu/stm32f4/ld/stm32f4.ld`](common/mcu/stm32f4/ld/stm32f4.ld) | GNU LD linker script for STM32F407VG (Flash 1 MB, SRAM 128 KB) |
 | [`common/mcu/stm32f4/startup/stm32f4xx_startup.s`](common/mcu/stm32f4/startup/stm32f4xx_startup.s) | Vector table (96 IRQs + 16 exceptions), Reset handler, weak defaults |
 | [`common/mcu/stm32f4/system/system_stm32f4xx.c`](common/mcu/stm32f4/system/system_stm32f4xx.c) | PLL clock init → 168 MHz, FPU enable, `SystemCoreClock` |
 | [`common/mcu/stm32f4/system/stm32f4xx_it.c`](common/mcu/stm32f4/system/stm32f4xx_it.c) | C-level IRQ handler stubs (all peripheral IRQs) |
@@ -88,10 +93,15 @@ nautilus/
 ├── common/
 │   ├── mcu/
 │   │   ├── mcu.h
-│   │   ├── mcu_stm32f4.c
-│   │   ├── ld/
-│   │   │   └── stm32f407xx.ld
 │   │   └── stm32f4/
+│   │       ├── mcu_stm32f4.c
+│   │       ├── mcu_stm32f4_impl.h
+│   │       ├── mcu_stm32f4_regs.h
+│   │       ├── mcu_stm32f4_gpio.c
+│   │       ├── mcu_stm32f4_uart.c
+│   │       ├── mcu_stm32f4_system.c
+│   │       ├── ld/
+│   │       │   └── stm32f4.ld
 │   │       ├── startup/
 │   │       │   └── stm32f4xx_startup.s
 │   │       └── system/
@@ -123,4 +133,4 @@ nautilus/
     └── FILE_INDEX.md
 ```
 
-**Total: 27 files** across 9 directories.
+**Total: 30 files** across 9 directories.

@@ -10,10 +10,14 @@ nautilus/
 ├── common/
 │   ├── mcu/                          # MCU abstraction layer
 │   │   ├── mcu.h                     # mcu_t vtable (portable interface)
-│   │   ├── mcu_stm32f4.c             # STM32F4xx register implementation
-│   │   ├── ld/                       # MCU-specific linker scripts
-│   │   │   └── stm32f407xx.ld
-│   │   └── stm32f4/                  # STM32F4-specific system files
+│   │   └── stm32f4/                  # STM32F4-specific files
+│   │       ├── mcu_stm32f4.c         # MCU vtable (ties implementations together)
+│   │       ├── mcu_stm32f4_regs.h     # STM32F4 register definitions
+│   │       ├── mcu_stm32f4_gpio.c    # GPIO implementation
+│   │       ├── mcu_stm32f4_uart.c    # UART implementation
+│   │       ├── mcu_stm32f4_system.c  # System (delay, clock) implementation
+│   │       ├── ld/
+│   │       │   └── stm32f4.ld        # STM32F4 linker script
 │   │       ├── startup/
 │   │       │   └── stm32f4xx_startup.s
 │   │       └── system/
@@ -58,8 +62,7 @@ application code runs on any supported board and MCU without changes.
 ├──────────────────────────────────────────────────────────────────┤
 │  common/boards/              (board_t — maps board → MCU pins)   │
 │  common/mcu/                 (mcu_t   — maps MCU → registers)    │
-│    ├── mcu_stm32f4.c         (register-level GPIO / UART impl)    │
-│    └── stm32f4/              (startup, system init, linker script)│
+│    └── <mcu>/                (MCU-specific: impl, startup, ld)   │
 ├──────────────────────────────────────────────────────────────────┤
 │  rtos/freertos/port/port.c   (Cortex-M4 port layer)              │
 │  FreeRTOS kernel (portable)                                       │
@@ -73,9 +76,24 @@ application code runs on any supported board and MCU without changes.
 | **Application** | `rtos/freertos/src/` | Demo tasks; uses `common/` drivers only | Write new task files |
 | **Drivers** | `common/src/` | LED, UART, delay — no register knowledge | Write new driver files |
 | **Board** | `common/boards/` | Maps board peripherals to MCU GPIO ports/pins | Add a `board_*.c` file |
-| **MCU** | `common/mcu/` | Maps MCU GPIO/UART ports to register addresses | Add a `mcu_*.c` file + `stm32f4/`-style subdir |
+| **MCU** | `common/mcu/<mcu>/` | MCU register implementation, startup, linker script | Add a new `<mcu>` subdirectory |
 | **Kernel** | `rtos/freertos/` | FreeRTOS scheduler, IPC, timers | — |
-| **System** | `common/mcu/<mcu>/` | Startup code, clock init, IRQ handlers, linker script | Add a new MCU subdirectory |
+
+## MCU Implementation Structure
+
+Each MCU family has its own subdirectory under `common/mcu/<mcu>/` with:
+
+| File | Purpose |
+|---|---|
+| `mcu_<mcu>.c` | MCU vtable — ties all implementations together |
+| `mcu_<mcu>_impl.h` | Implementation function declarations |
+| `mcu_<mcu>_regs.h` | Register definitions (internal header) |
+| `mcu_<mcu>_gpio.c` | GPIO implementation |
+| `mcu_<mcu>_uart.c` | UART implementation |
+| `mcu_<mcu>_system.c` | System functions (delay, clock) |
+| `ld/<mcu>.ld` | Linker script |
+| `startup/` | Vector table and reset handler |
+| `system/` | Clock init, IRQ handlers, HAL config |
 
 ## Adding a New Board (same MCU family)
 
@@ -89,24 +107,25 @@ To support a new board on an existing MCU (e.g. a custom STM32F4 board):
 
 No changes to drivers, MCU code, or the RTOS layer are needed.
 
-## Adding a New Board + New MCU
+## Adding a New MCU
 
-To support a new board on a new MCU family (e.g. STM32F1 Blue Pill):
+To support a new MCU family (e.g. STM32F1 Blue Pill):
 
-1. **Create `common/mcu/<mcu>/`** — a new MCU subdirectory containing:
-   - `startup/` — vector table and reset handler (`.s` file)
+1. **Create `common/mcu/<mcu>/` — a new MCU subdirectory containing:**
+   - `mcu_<mcu>.c` — the `mcu_t` vtable (ties implementations together)
+   - `mcu_<mcu>_regs.h` — register definitions
+   - `mcu_<mcu>_gpio.c` — GPIO implementation
+   - `mcu_<mcu>_uart.c` — UART implementation
+   - `mcu_<mcu>_system.c` — system functions
+   - `ld/<mcu>.ld` — linker script
+   - `startup/` — vector table and reset handler
    - `system/` — clock init, IRQ handlers, HAL config
-   - `ld/` — linker script for that MCU's memory map
 
-2. **Create `common/mcu/mcu_<mcu>.c`**
-   Populate a `mcu_t` vtable with the new MCU's register addresses and
-   bit masks for GPIO and UART.
-
-3. **Create `common/boards/board_<name>.c`**
+2. **Create `common/boards/board_<name>.c`**
    Populate a `board_t` struct mapping the board's peripherals to the
    new MCU's GPIO ports and pins.
 
-4. **Build** with `make BOARD=<name> MCU=<mcu>`.
+3. **Build** with `make BOARD=<name> MCU=<mcu>`.
 
 No changes to `common/src/led.c`, `common/src/uart.c`, or
 `rtos/freertos/src/tasks.c` are needed.
