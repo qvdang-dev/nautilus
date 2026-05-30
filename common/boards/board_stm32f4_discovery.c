@@ -9,6 +9,7 @@
 
 #include "boards.h"
 #include "mcu.h"
+#include "mcu_stm32f4_regs.h"
 
 /* ====================================================================== */
 /*  STM32F4-Discovery peripheral map                                      */
@@ -24,22 +25,15 @@
  *  UART_CONSOLE → USART2 (PA2=TX, PA3=RX, 115200 8N1)
  */
 
-/* GPIO port handles — cast from the MCU base addresses */
-#define PA  ((mcu_gpio_port_t)0x40020000UL)
-#define PG  ((mcu_gpio_port_t)0x40021800UL)
-
-/* UART handle — cast from the MCU base address */
-#define USART2_H  ((mcu_uart_t)0x40004400UL)
-
 /* ====================================================================== */
-/*  LED array                                                              */
+/*  LED array                                                               */
 /* ====================================================================== */
 
 static const board_led_t s_leds[] = {
-    { "LED_GREEN",  PG, 13, 1 },
-    { "LED_RED",    PG, 14, 1 },
-    { "LED_ORANGE", PA,  0, 1 },
-    { "LED_BLUE",   PA,  1, 1 },
+    { "LED_GREEN",  MCU_GPIO_PORT_G, 13, 1 },
+    { "LED_RED",    MCU_GPIO_PORT_G, 14, 1 },
+    { "LED_ORANGE", MCU_GPIO_PORT_A,  0, 1 },
+    { "LED_BLUE",   MCU_GPIO_PORT_A,  1, 1 },
 };
 
 /* ====================================================================== */
@@ -47,7 +41,7 @@ static const board_led_t s_leds[] = {
 /* ====================================================================== */
 
 static const board_btn_t s_btns[] = {
-    { "BTN_USER", PA, 0, 0 },   /* active-low */
+    { "BTN_USER", MCU_GPIO_PORT_A, 0, 0 },   /* active-low */
 };
 
 /* ====================================================================== */
@@ -55,7 +49,7 @@ static const board_btn_t s_btns[] = {
 /* ====================================================================== */
 
 static const board_uart_t s_uarts[] = {
-    { "UART_CONSOLE", USART2_H, 115200 },
+    { "UART_CONSOLE", MCU_USART2, 115200 },
 };
 
 /* ====================================================================== */
@@ -78,7 +72,7 @@ const board_t g_board_stm32f4_discovery = {
 
 /* ====================================================================== */
 /*  Public accessor                                                        */
-* ====================================================================== */
+/* ====================================================================== */
 
 const board_t *board_get(void)
 {
